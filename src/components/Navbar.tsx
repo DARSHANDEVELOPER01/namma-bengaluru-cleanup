@@ -14,7 +14,8 @@ import {
   Wrench, 
   Languages,
   CheckCircle2,
-  ChevronDown
+  ChevronDown,
+  Calendar
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -28,6 +29,7 @@ interface NavbarProps {
   userName: string;
   onOpenAuth: () => void;
   onOpenReport: () => void;
+  onOpenAppointment: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -41,6 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   userName,
   onOpenAuth,
   onOpenReport,
+  onOpenAppointment,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
@@ -189,6 +192,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
+            {/* Book Appointment CTA (Supabase Backend) */}
+            <button
+              onClick={onOpenAppointment}
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800/90 hover:bg-slate-700 text-teal-300 hover:text-white border border-teal-500/40 shadow-sm transition-all"
+              title="Book Cleanliness / Bulk Waste Pickup Appointment (Saved to Supabase)"
+            >
+              <Calendar className="w-3.5 h-3.5 text-teal-400" />
+              <span>{lang === 'kn' ? 'ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್' : 'Book Appointment'}</span>
+            </button>
+
             {/* Main Action: Report Garbage CTA */}
             <button
               onClick={onOpenReport}
@@ -267,6 +280,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               );
             })}
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                onOpenAppointment();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white text-xs font-bold shadow-md"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>{lang === 'kn' ? 'ಸ್ವಚ್ಛತಾ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಕಾಯ್ದಿರಿಸಿ (Supabase)' : 'Book Cleanliness Appointment (Supabase)'}</span>
+            </button>
           </div>
 
           <div className="pt-2 border-t border-slate-800">

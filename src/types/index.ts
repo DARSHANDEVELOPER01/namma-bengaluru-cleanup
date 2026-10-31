@@ -96,3 +96,28 @@ export interface RewardVoucher {
   icon: string;
   code?: string;
 }
+
+export type AppointmentServiceType =
+  | 'bulk_waste_pickup'
+  | 'neighborhood_inspection'
+  | 'dry_waste_drive'
+  | 'composting_guidance'
+  | 'officer_consultation'
+  | 'general_sanitation';
+
+export interface AppointmentBooking {
+  id: string; // e.g. APT-2026-7842
+  full_name: string;
+  phone: string;
+  email: string;
+  service_type: AppointmentServiceType;
+  appointment_date: string;
+  appointment_time: string;
+  bbmp_zone: BengaluruZone;
+  ward_number?: number;
+  address: string;
+  notes?: string;
+  status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
+  created_at: string;
+  synced_to_supabase?: boolean;
+}

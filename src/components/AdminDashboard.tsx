@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Complaint, ComplaintStatus, BengaluruZone } from '../types';
+import { Complaint, ComplaintStatus, BengaluruZone, AppointmentBooking } from '../types';
 import { Language, translations } from '../utils/translations';
+import { SUPABASE_PROJECT_ID } from '../utils/supabase';
 import { 
   ShieldCheck, 
   CheckCircle, 
@@ -16,12 +17,18 @@ import {
   SlidersHorizontal,
   ExternalLink,
   ChevronRight,
-  Filter
+  Filter,
+  Calendar,
+  Database,
+  Mail,
+  Phone
 } from 'lucide-react';
 
 interface AdminDashboardProps {
   complaints: Complaint[];
+  appointments: AppointmentBooking[];
   lang: Language;
+  onOpenAppointment: () => void;
   onUpdateComplaintStatus: (
     complaintId: string,
     newStatus: ComplaintStatus,
@@ -33,10 +40,13 @@ interface AdminDashboardProps {
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   complaints,
+  appointments = [],
   lang,
+  onOpenAppointment,
   onUpdateComplaintStatus,
 }) => {
   const t = translations[lang];
+  const [activeTab, setActiveTab] = useState<'complaints' | 'appointments'>('complaints');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
     complaints[0] || null
   );
@@ -179,8 +189,150 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="my-6 grid grid-cols-1 md:grid-cols-12 gap-3">
+      {/* Admin Tab Switcher */}
+      <div className="flex items-center gap-3 border-b border-slate-800 mb-6">
+        <button
+          onClick={() => setActiveTab('complaints')}
+          className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'complaints'
+              ? 'border-emerald-400 text-emerald-400'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>Complaints Inbox ({complaints.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('appointments')}
+          className={`flex items-center gap-2 pb-3 px-4 text-sm font-bold border-b-2 transition-all ${
+            activeTab === 'appointments'
+              ? 'border-teal-400 text-teal-300'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Database className="w-4 h-4 text-emerald-400" />
+          <span>Supabase Appointments ({appointments.length})</span>
+          <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono">
+            {SUPABASE_PROJECT_ID}
+          </span>
+        </button>
+
+        <button
+          onClick={onOpenAppointment}
+          className="ml-auto hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600/20 hover:bg-teal-600/40 text-teal-300 border border-teal-500/30 text-xs font-semibold mb-2 transition-colors"
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>+ Book New Appointment</span>
+        </button>
+      </div>
+
+      {activeTab === 'appointments' ? (
+        /* Supabase Appointments View */
+        <div className="rounded-3xl bg-slate-900/80 border border-slate-800 overflow-hidden shadow-2xl space-y-4">
+          <div className="p-5 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-base font-bold text-white">
+                  Supabase Live Database: Table 'appointments'
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Appointments submitted via citizen form are automatically inserted and synchronized in Supabase project <code className="text-emerald-300 font-mono">{SUPABASE_PROJECT_ID}</code>.
+              </p>
+            </div>
+
+            <button
+              onClick={onOpenAppointment}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold shadow-md hover:from-emerald-400 transition-all flex items-center gap-1.5"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Fill Appointment Booking Form</span>
+            </button>
+          </div>
+
+          <div className="p-4 overflow-x-auto">
+            {appointments.length > 0 ? (
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+                    <th className="pb-3 pl-2">ID</th>
+                    <th className="pb-3">Citizen Contact</th>
+                    <th className="pb-3">Service Type</th>
+                    <th className="pb-3">Scheduled Slot</th>
+                    <th className="pb-3">Ward & Zone</th>
+                    <th className="pb-3">Address</th>
+                    <th className="pb-3">Database Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                  {appointments.map((apt) => (
+                    <tr key={apt.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 pl-2 font-mono font-bold text-teal-400">
+                        {apt.id}
+                      </td>
+                      <td className="py-3">
+                        <div className="font-semibold text-white">{apt.full_name}</div>
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                          <Phone className="w-3 h-3 text-slate-500" />
+                          <span>{apt.phone}</span>
+                        </div>
+                        {apt.email && (
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1">
+                            <Mail className="w-3 h-3 text-slate-500" />
+                            <span>{apt.email}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        <span className="capitalize font-medium text-emerald-300">
+                          {apt.service_type.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        <div className="text-white font-semibold">{apt.appointment_date}</div>
+                        <div className="text-[10px] text-amber-400">{apt.appointment_time}</div>
+                      </td>
+                      <td className="py-3">
+                        <div>{apt.bbmp_zone} Zone</div>
+                        <div className="text-[10px] text-slate-400">Ward #{apt.ward_number || 112}</div>
+                      </td>
+                      <td className="py-3 max-w-[180px] truncate text-slate-300">
+                        {apt.address}
+                      </td>
+                      <td className="py-3">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-bold">
+                          <CheckCircle className="w-3 h-3 text-emerald-400" />
+                          <span>Supabase Synced</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="py-12 text-center space-y-3">
+                <Database className="w-10 h-10 text-slate-600 mx-auto" />
+                <h4 className="text-sm font-bold text-white">No Appointments Logged Yet</h4>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Click the button below to book an appointment. It will automatically save to your Supabase project <code className="text-emerald-400">{SUPABASE_PROJECT_ID}</code>.
+                </p>
+                <button
+                  onClick={onOpenAppointment}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                >
+                  Book First Appointment
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Complaints View */
+        <>
+          {/* Filter and Search Bar */}
+          <div className="my-6 grid grid-cols-1 md:grid-cols-12 gap-3">
         <div className="md:col-span-6 relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
           <input
@@ -373,7 +525,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         )}
 
       </div>
+      </>
+      )}
 
     </div>
   );
 };
+

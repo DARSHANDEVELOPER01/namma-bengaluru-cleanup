@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Complaint, ComplaintStatus, Role, UserProfile, RewardVoucher } from './types';
+import { Complaint, ComplaintStatus, Role, UserProfile, RewardVoucher, AppointmentBooking } from './types';
 import { Language } from './utils/translations';
-import { INITIAL_COMPLAINTS, INITIAL_USER } from './data/initialData';
+import { INITIAL_COMPLAINTS, INITIAL_USER, INITIAL_APPOINTMENTS } from './data/initialData';
+import { 
+  fetchAppointmentsFromSupabase, 
+  saveComplaintToSupabase, 
+  SUPABASE_PROJECT_ID 
+} from './utils/supabase';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { HowItWorks } from './components/HowItWorks';
 import { RecentResolved } from './components/RecentResolved';
 import { ReportModal } from './components/ReportModal';
+import { AppointmentModal } from './components/AppointmentModal';
 import { TrackPage } from './components/TrackPage';
 import { MapView } from './components/MapView';
 import { RewardsPage } from './components/RewardsPage';
@@ -23,6 +29,7 @@ export default function App() {
 
   // Modal states
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Complaints state (seeded with authentic Bengaluru data)
@@ -34,6 +41,17 @@ export default function App() {
       // ignore
     }
     return INITIAL_COMPLAINTS;
+  });
+
+  // Appointments state (persisted & synced to Supabase)
+  const [appointments, setAppointments] = useState<AppointmentBooking[]>(() => {
+    try {
+      const saved = localStorage.getItem('blr_appointments_v1');
+      if (saved && JSON.parse(saved).length > 0) return JSON.parse(saved);
+    } catch (e) {
+      // ignore
+    }
+    return INITIAL_APPOINTMENTS;
   });
 
   // User profile state
@@ -68,11 +86,34 @@ export default function App() {
 
   useEffect(() => {
     try {
+      localStorage.setItem('blr_appointments_v1', JSON.stringify(appointments));
+    } catch (e) {
+      // ignore
+    }
+  }, [appointments]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem('blr_user_v1', JSON.stringify(user));
     } catch (e) {
       // ignore
     }
   }, [user]);
+
+  // Initial load: Fetch live appointments from Supabase backend
+  useEffect(() => {
+    async function loadSupabaseData() {
+      try {
+        const liveAppointments = await fetchAppointmentsFromSupabase();
+        if (liveAppointments && liveAppointments.length > 0) {
+          setAppointments(liveAppointments);
+        }
+      } catch (err) {
+        console.warn('Initial Supabase fetch:', err);
+      }
+    }
+    loadSupabaseData();
+  }, []);
 
   // Handle new complaint submitted by citizen
   const handleNewComplaint = (newComplaint: Complaint) => {
@@ -84,6 +125,15 @@ export default function App() {
       reportsSubmitted: prev.reportsSubmitted + 1,
     }));
     showToast(`Complaint ${newComplaint.id} registered! +${earned} citizen points credited.`);
+    
+    // Also asynchronously mirror to Supabase complaints table if available
+    saveComplaintToSupabase(newComplaint);
+  };
+
+  // Handle new appointment booking submitted by citizen (Supabase backend)
+  const handleNewAppointment = (newBooking: AppointmentBooking) => {
+    setAppointments((prev) => [newBooking, ...prev]);
+    showToast(`Appointment ${newBooking.id} confirmed and saved to Supabase (${SUPABASE_PROJECT_ID})!`);
   };
 
   // Handle Admin updating status / assigning
@@ -135,11 +185,9 @@ export default function App() {
     resolvedImageUrl: string,
     cleaningNotes: string
   ) => {
-    let reportingCitizenId = '';
     setComplaints((prev) =>
       prev.map((c) => {
         if (c.id === complaintId) {
-          reportingCitizenId = c.citizenId;
           return {
             ...c,
             status: 'resolved',
@@ -153,7 +201,6 @@ export default function App() {
       })
     );
 
-    // If the logged in user was the reporter, award the 30 bonus points!
     setUser((prev) => ({
       ...prev,
       points: prev.points + 30,
@@ -208,6 +255,7 @@ export default function App() {
         userName={user.name}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onOpenReport={() => setIsReportModalOpen(true)}
+        onOpenAppointment={() => setIsAppointmentModalOpen(true)}
       />
 
       {/* Main View Router */}
@@ -220,6 +268,7 @@ export default function App() {
               onNavigateTrack={() => setCurrentView('track')}
               onNavigateMap={() => setCurrentView('map')}
               onNavigateRewards={() => setCurrentView('rewards')}
+              onOpenAppointment={() => setIsAppointmentModalOpen(true)}
               totalComplaints={complaints.length}
               resolvedComplaints={resolvedCount}
             />
@@ -269,7 +318,9 @@ export default function App() {
         {currentView === 'admin' && (
           <AdminDashboard
             complaints={complaints}
+            appointments={appointments}
             lang={lang}
+            onOpenAppointment={() => setIsAppointmentModalOpen(true)}
             onUpdateComplaintStatus={handleUpdateComplaintStatus}
           />
         )}
@@ -294,7 +345,7 @@ export default function App() {
         onNavigateRewards={() => setCurrentView('rewards')}
       />
 
-      {/* Report Modal */}
+      {/* Report Garbage Modal */}
       <ReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
@@ -303,6 +354,17 @@ export default function App() {
         citizenPhone={user.phone}
         citizenId={user.id}
         onSubmitSuccess={handleNewComplaint}
+      />
+
+      {/* Appointment Booking Modal (Supabase Backend) */}
+      <AppointmentModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => setIsAppointmentModalOpen(false)}
+        lang={lang}
+        defaultName={user.name}
+        defaultPhone={user.phone}
+        defaultEmail={user.email}
+        onBookingSuccess={handleNewAppointment}
       />
 
       {/* Auth / Profile Modal */}

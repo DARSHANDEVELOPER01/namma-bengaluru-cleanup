@@ -59,6 +59,33 @@ A modern, responsive, citizen-powered cleanliness and civic reporting platform i
 9. **Bilingual Support (English & ಕನ್ನಡ)**
    - Complete 1-click toggle between English and Kannada across all UI elements, headings, categories, and instructions.
 
+10. **Supabase Live Backend Integration**
+   - **Project ID**: `vbqkovmxgvtqvtmbkapy`
+   - **API URL**: `https://vbqkovmxgvtqvtmbkapy.supabase.co`
+   - **Table**: `appointments`
+   - **Features**: Automatically saves all submitted appointment bookings (bulk waste pickup, ward sanitation inspection, officer consultations) to your Supabase PostgreSQL database in real-time.
+   - **SQL Setup**:
+     ```sql
+     CREATE TABLE IF NOT EXISTS appointments (
+       id TEXT PRIMARY KEY,
+       full_name TEXT NOT NULL,
+       phone TEXT NOT NULL,
+       email TEXT,
+       service_type TEXT NOT NULL,
+       appointment_date TEXT NOT NULL,
+       appointment_time TEXT NOT NULL,
+       bbmp_zone TEXT,
+       ward_number INTEGER,
+       address TEXT,
+       notes TEXT,
+       status TEXT DEFAULT 'confirmed',
+       created_at TIMESTAMPTZ DEFAULT NOW()
+     );
+     ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+     CREATE POLICY "Public insert access" ON appointments FOR INSERT TO anon WITH CHECK (true);
+     CREATE POLICY "Public read access" ON appointments FOR SELECT TO anon USING (true);
+     ```
+
 ---
 
 ## 📁 Folder Structure

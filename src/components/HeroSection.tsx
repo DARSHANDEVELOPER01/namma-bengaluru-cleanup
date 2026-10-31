@@ -12,7 +12,9 @@ import {
   ChevronRight,
   ShieldCheck,
   Building2,
-  TreePine
+  TreePine,
+  Calendar,
+  Database
 } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -21,6 +23,7 @@ interface HeroSectionProps {
   onNavigateTrack: () => void;
   onNavigateMap: () => void;
   onNavigateRewards: () => void;
+  onOpenAppointment: () => void;
   totalComplaints: number;
   resolvedComplaints: number;
 }
@@ -31,6 +34,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onNavigateTrack,
   onNavigateMap,
   onNavigateRewards,
+  onOpenAppointment,
   totalComplaints,
   resolvedComplaints,
 }) => {
@@ -109,6 +113,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               >
                 <Search className="w-4 h-4 text-slate-300" />
                 <span>{t.trackComplaint}</span>
+              </button>
+
+              <button
+                onClick={onOpenAppointment}
+                className="flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-teal-500/20 to-emerald-500/20 text-teal-300 hover:text-white font-semibold text-sm border border-teal-500/40 hover:bg-teal-600/30 transition-all shadow-md"
+              >
+                <Calendar className="w-4 h-4 text-teal-400" />
+                <span>{lang === 'kn' ? 'ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಕಾಯ್ದಿರಿಸಿ' : 'Book Appointment'}</span>
               </button>
 
               <button

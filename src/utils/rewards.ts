@@ -152,3 +152,54 @@ export function filterComplaints(
     return true;
   });
 }
+
+/**
+ * Generates an official Bengaluru appointment booking ID (e.g. APT-2026-8492)
+ */
+export function generateAppointmentId(randomSeed?: number): string {
+  const seed = randomSeed ?? Math.floor(1000 + Math.random() * 9000);
+  return `APT-2026-${seed}`;
+}
+
+/**
+ * Validates appointment booking form submission.
+ */
+export function validateAppointmentBooking(data: {
+  full_name?: string;
+  phone?: string;
+  service_type?: string;
+  appointment_date?: string;
+  appointment_time?: string;
+  address?: string;
+}): { isValid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+
+  if (!data.full_name || data.full_name.trim().length < 2) {
+    errors.full_name = 'Please enter your full name.';
+  }
+
+  if (!data.phone || data.phone.trim().length < 10) {
+    errors.phone = 'Please enter a valid 10-digit mobile number.';
+  }
+
+  if (!data.service_type) {
+    errors.service_type = 'Please select a service type.';
+  }
+
+  if (!data.appointment_date) {
+    errors.appointment_date = 'Please select a preferred appointment date.';
+  }
+
+  if (!data.appointment_time) {
+    errors.appointment_time = 'Please select a preferred time slot.';
+  }
+
+  if (!data.address || data.address.trim().length < 5) {
+    errors.address = 'Please provide the street address / ward for the appointment.';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+}

@@ -1,4 +1,4 @@
-import { Complaint, UserProfile, RewardVoucher } from '../types';
+import { Complaint, UserProfile, RewardVoucher, AppointmentBooking } from '../types';
 
 export const INITIAL_COMPLAINTS: Complaint[] = [
   {
@@ -246,3 +246,39 @@ export const SAMPLE_WASTE_PHOTOS = [
     category: 'roadside_garbage' as const,
   },
 ];
+
+export const INITIAL_APPOINTMENTS: AppointmentBooking[] = [
+  {
+    id: 'APT-2026-1082',
+    full_name: 'Darshan K R',
+    phone: '+91 98450 12345',
+    email: 'darshankr2604@gmail.com',
+    service_type: 'bulk_waste_pickup',
+    appointment_date: '2026-11-02',
+    appointment_time: '10:00 AM - 12:00 PM',
+    bbmp_zone: 'East',
+    ward_number: 112,
+    address: '100 Feet Road, Indiranagar, Bengaluru, Karnataka',
+    notes: 'Bulk electronics & dry scrap pickup for recycling',
+    status: 'confirmed',
+    created_at: '2026-10-31T04:20:00Z',
+    synced_to_supabase: true,
+  },
+  {
+    id: 'APT-2026-1094',
+    full_name: 'Ananya Hegde',
+    phone: '+91 94480 88776',
+    email: 'ananya.hegde@bengaluru.in',
+    service_type: 'neighborhood_inspection',
+    appointment_date: '2026-11-03',
+    appointment_time: '08:00 AM - 10:00 AM',
+    bbmp_zone: 'West',
+    ward_number: 45,
+    address: '8th Cross, Margosa Road, Malleshwaram, Bengaluru',
+    notes: 'Recurring street corner silt and dry leaf waste dumping',
+    status: 'confirmed',
+    created_at: '2026-10-31T05:00:00Z',
+    synced_to_supabase: true,
+  },
+];
+

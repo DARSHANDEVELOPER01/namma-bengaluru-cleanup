@@ -6,6 +6,8 @@ import {
   checkBadgeUnlocks,
   validateComplaintSubmission,
   filterComplaints,
+  generateAppointmentId,
+  validateAppointmentBooking,
 } from './rewards';
 import { Complaint } from '../types';
 
@@ -141,3 +143,34 @@ test('filterComplaints: filters accurately by status, category, zone, and search
   assert.equal(searchIndira.length, 1);
   assert.equal(searchIndira[0].id, 'BLR-2026-1002');
 });
+
+test('generateAppointmentId: generates formatted ID APT-2026-XXXX', () => {
+  const apt1 = generateAppointmentId(9999);
+  assert.equal(apt1, 'APT-2026-9999');
+
+  const randomApt = generateAppointmentId();
+  assert.match(randomApt, /^APT-2026-\d{4}$/);
+});
+
+test('validateAppointmentBooking: catches invalid or incomplete appointment submissions', () => {
+  const invalid = validateAppointmentBooking({});
+  assert.equal(invalid.isValid, false);
+  assert.ok(invalid.errors.full_name);
+  assert.ok(invalid.errors.phone);
+  assert.ok(invalid.errors.service_type);
+  assert.ok(invalid.errors.appointment_date);
+  assert.ok(invalid.errors.appointment_time);
+  assert.ok(invalid.errors.address);
+
+  const valid = validateAppointmentBooking({
+    full_name: 'Darshan K R',
+    phone: '9845012345',
+    service_type: 'bulk_waste_pickup',
+    appointment_date: '2026-11-05',
+    appointment_time: '10:00 AM - 12:00 PM',
+    address: 'Indiranagar 100ft Road, Bengaluru',
+  });
+  assert.equal(valid.isValid, true);
+  assert.deepEqual(valid.errors, {});
+});
+
