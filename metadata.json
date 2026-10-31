@@ -1,0 +1,9 @@
+{
+  "name": "Namma Bengaluru – Smart Clean City",
+  "description": "Citizen-powered cleanliness and civic reporting platform for Bengaluru. Report garbage, capture GPS location, earn rewards, and track civic cleanup in real-time.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
